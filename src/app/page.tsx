@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -7,9 +8,11 @@ export default function Home() {
       <h1 className="text-3xl font-bold">NextChat</h1>
       <p className="mt-1">Your go-to chat application.</p>
       <div className="actions mt-7">
-        <Button>
-          Join Us <ArrowRight size={20} className="ms-2 h-6 w-6" />
-        </Button>
+        <Link href={"/auth"}>
+          <Button>
+            Join Us <ArrowRight size={20} className="ms-2 h-6 w-6" />
+          </Button>
+        </Link>
       </div>
     </div>
   );
