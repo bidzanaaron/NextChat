@@ -1,6 +1,6 @@
 "use client";
 
-import { registerUser } from "@/lib";
+import { registerUser } from "@/actions";
 import { useState } from "react";
 import { Button } from "../button";
 import {
