@@ -1,9 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { getSessionToken } from "@/lib";
-import { Send } from "lucide-react";
+import { DialogDescription } from "@radix-ui/react-dialog";
+import { Loader2, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
@@ -17,6 +19,8 @@ export default function Dashboard() {
   ]);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [typingMessage, setTypingMessage] = useState<string>("");
+  const [authenticationDialogOpen, setAuthenticationDialogOpen] =
+    useState<boolean>(false);
 
   function addMessage(message: string, sender: string) {
     setMessages((currentMessages) => [
@@ -30,26 +34,44 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    const socket = io("ws://localhost:3010");
+    setAuthenticationDialogOpen(true);
 
-    socket.on("connect", () => {
-      console.log("Connected to the server.");
-      setSocket(socket);
+    setTimeout(() => {
+      const socket = io("ws://172.25.2.40:3010");
 
-      getSessionToken().then((token) => {
-        socket.emit("authenticate", {
-          token: token,
+      socket.on("connect", () => {
+        console.log("Connected to the server.");
+        setSocket(socket);
+
+        socket.on("authenticationStatus", (data) => {
+          setAuthenticationDialogOpen(!data.status);
+        });
+
+        getSessionToken().then((token) => {
+          socket.emit("authenticate", {
+            token: token,
+          });
         });
       });
-    });
 
-    socket.on("broadcastMessage", (data) => {
-      addMessage(data.message, data.username);
-    });
+      socket.on("broadcastMessage", (data) => {
+        addMessage(data.message, data.username);
+      });
+    }, 2000);
   }, []);
 
   return (
     <div className="dashboard">
+      <Dialog open={authenticationDialogOpen}>
+        <DialogContent>
+          <DialogTitle>Authentication</DialogTitle>
+          <DialogDescription>
+            Please wait while we are authenticating you with our websocket.
+            <Loader2 size={24} className="animate-spin mt-4" />
+          </DialogDescription>
+        </DialogContent>
+      </Dialog>
+
       <div className="title">
         <h1 className="text-2xl font-semibold">Dashboard</h1>
         <p className="text-neutral-300">Welcome to the dashboard.</p>
