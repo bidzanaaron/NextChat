@@ -2,18 +2,18 @@
 
 import { registerUser } from "@/actions";
 import { useState } from "react";
-import { Button } from "../button";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "../card";
 import { Input } from "../input";
 import { Label } from "../label";
 import { useToast } from "../use-toast";
+import RegisterButton from "./RegisterButton";
 
 interface props {
   setTab: (tab: string) => void;
@@ -84,7 +84,7 @@ export default function RegisterCard({ setTab }: props) {
             </div>
           </CardContent>
           <CardFooter>
-            <Button>Register</Button>
+            <RegisterButton />
           </CardFooter>
         </form>
       </Card>

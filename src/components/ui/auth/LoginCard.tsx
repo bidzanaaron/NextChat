@@ -3,7 +3,6 @@
 import { login } from "@/actions";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "../button";
 import {
   Card,
   CardContent,
@@ -15,6 +14,7 @@ import {
 import { Input } from "../input";
 import { Label } from "../label";
 import { useToast } from "../use-toast";
+import LoginButton from "./LoginButton";
 
 export default function LoginCard() {
   const [error, setError] = useState<string | null>(null);
@@ -59,7 +59,7 @@ export default function LoginCard() {
             </div>
           </CardContent>
           <CardFooter>
-            <Button>Login</Button>
+            <LoginButton />
           </CardFooter>
         </form>
       </Card>
