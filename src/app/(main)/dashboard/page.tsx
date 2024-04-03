@@ -2,8 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getSessionToken } from "@/lib";
 import { Send } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { io, Socket } from "socket.io-client";
 
 export default function Dashboard() {
   const [messages, setMessages] = useState([
@@ -13,6 +15,38 @@ export default function Dashboard() {
       sender: "Server",
     },
   ]);
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [typingMessage, setTypingMessage] = useState<string>("");
+
+  function addMessage(message: string, sender: string) {
+    setMessages((currentMessages) => [
+      {
+        id: currentMessages.length + 1,
+        message: message,
+        sender: sender,
+      },
+      ...currentMessages,
+    ]);
+  }
+
+  useEffect(() => {
+    const socket = io("ws://localhost:3010");
+
+    socket.on("connect", () => {
+      console.log("Connected to the server.");
+      setSocket(socket);
+
+      getSessionToken().then((token) => {
+        socket.emit("authenticate", {
+          token: token,
+        });
+      });
+    });
+
+    socket.on("broadcastMessage", (data) => {
+      addMessage(data.message, data.username);
+    });
+  }, []);
 
   return (
     <div className="dashboard">
@@ -29,17 +63,19 @@ export default function Dashboard() {
               const message = formData.get("message") as string;
               if (!message || message === "") return;
 
-              setMessages([
-                {
-                  id: messages.length + 1,
-                  message: message,
-                  sender: "user",
-                },
-                ...messages,
-              ]);
+              socket?.emit("sendMessage", {
+                message,
+              });
+
+              setTypingMessage("");
             }}
           >
-            <Input name="message" placeholder="Type a message..." />
+            <Input
+              name="message"
+              value={typingMessage}
+              onChange={(element) => setTypingMessage(element.target.value)}
+              placeholder="Type a message..."
+            />
             <Button className="ms-2" variant={"outline"}>
               <Send size={20} className="h-5 w-5" />
             </Button>

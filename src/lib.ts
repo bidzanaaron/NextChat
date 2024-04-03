@@ -35,6 +35,13 @@ export async function getSession() {
   return await decrypt(session);
 }
 
+export async function getSessionToken() {
+  const session = cookies().get("session")?.value;
+  if (!session) return null;
+
+  return session;
+}
+
 export async function findUserByEmail(email: string): Promise<User | null> {
   return await prismaClient.user.findUnique({ where: { email } });
 }

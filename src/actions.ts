@@ -56,7 +56,7 @@ export async function login(formData: FormData) {
     return { error: "Deine E-Mail oder dein Passwort ist nicht korrekt." };
   }
 
-  const user = { id: dbUser.id, email: dbUser.email };
+  const user = { id: dbUser.id, email: dbUser.email, username: dbUser.username };
 
   const expires = new Date(Date.now() + 1000 * 60 * 60 * 24);
   const session = await encrypt(expires, { user });
