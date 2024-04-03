@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { getSessionToken } from "@/lib";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
@@ -15,6 +15,7 @@ export default function Dashboard() {
       id: 1,
       message: "This is the start of the conversation.",
       sender: "Server",
+      verified: true,
     },
   ]);
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -22,12 +23,17 @@ export default function Dashboard() {
   const [authenticationDialogOpen, setAuthenticationDialogOpen] =
     useState<boolean>(false);
 
-  function addMessage(message: string, sender: string) {
+  function addMessage(
+    message: string,
+    sender: string,
+    verified: boolean
+  ) {
     setMessages((currentMessages) => [
       {
         id: currentMessages.length + 1,
         message: message,
         sender: sender,
+        verified: verified || false,
       },
       ...currentMessages,
     ]);
@@ -55,7 +61,7 @@ export default function Dashboard() {
       });
 
       socket.on("broadcastMessage", (data) => {
-        addMessage(data.message, data.username);
+        addMessage(data.message, data.username, data.verified);
       });
     }, 2000);
   }, []);
@@ -110,7 +116,10 @@ export default function Dashboard() {
               key={msg.id}
               className="bg-neutral-900 border mb-3 p-3 rounded"
             >
-              <h3 className="text-lg font-semibold">{msg.sender}</h3>
+              <h3 className="text-lg font-semibold flex items-center">
+                {msg.sender}
+                {msg.verified && <ShieldCheck className="ms-1" size={20} />}
+              </h3>
               <span>{msg.message}</span>
             </div>
           ))}

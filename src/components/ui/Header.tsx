@@ -15,7 +15,9 @@ export default async function Header() {
         </div>
         <div className="session flex items-center">
           <span>{currentUser?.username}</span>
-          <ShieldCheck size={24} className="h-5 w-5 ms-1" />
+          {currentUser?.verified && (
+            <ShieldCheck size={24} className="h-5 w-5 ms-1" />
+          )}
           <form
             action={async () => {
               "use server";
