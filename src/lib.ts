@@ -38,3 +38,7 @@ export async function getSession() {
 export async function findUserByEmail(email: string): Promise<User | null> {
   return await prismaClient.user.findUnique({ where: { email } });
 }
+
+export async function findUserBySession(session: any): Promise<User | null> {
+  return await prismaClient.user.findUnique({ where: { id: session.user.id } });
+}
