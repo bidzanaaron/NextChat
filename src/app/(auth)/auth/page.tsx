@@ -24,7 +24,7 @@ export default function Auth() {
           <LoginCard />
         </TabsContent>
         <TabsContent value="register">
-          <RegisterCard />
+          <RegisterCard setTab={setTab} />
         </TabsContent>
       </Tabs>
     </div>
