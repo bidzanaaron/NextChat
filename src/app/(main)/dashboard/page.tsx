@@ -9,13 +9,8 @@ export default function Dashboard() {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      message: "Hello, how can I help you?",
-      sender: "bot",
-    },
-    {
-      id: 2,
-      message: "I need help with my account.",
-      sender: "user",
+      message: "This is the start of the conversation.",
+      sender: "Server",
     },
   ]);
 
