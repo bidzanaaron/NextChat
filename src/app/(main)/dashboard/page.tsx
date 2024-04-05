@@ -4,21 +4,21 @@ import { Button } from "@/components/ui/button";
 import Message from "@/components/ui/dashboard/Message";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { findUserById, getSessionToken } from "@/lib";
+import { fetchLatestMessages, findUserById, getSessionToken } from "@/lib";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { Loader2, Send, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
+interface messageSchema {
+  id: number;
+  message: string;
+  sender: string;
+  verified: boolean;
+}
+
 export default function Dashboard() {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      message: "This is the start of the conversation.",
-      sender: "Server",
-      verified: true,
-    },
-  ]);
+  const [messages, setMessages] = useState<messageSchema[]>([]);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [typingMessage, setTypingMessage] = useState<string>("");
   const [authenticationDialogOpen, setAuthenticationDialogOpen] =
@@ -40,35 +40,51 @@ export default function Dashboard() {
   useEffect(() => {
     setAuthenticationDialogOpen(true);
 
-    setTimeout(() => {
-      const socket = io("ws://localhost:3010");
+    const socket = io("ws://172.25.2.40:3010");
 
-      socket.on("connect", () => {
-        console.log("Connected to the server.");
-        setSocket(socket);
+    socket.on("connect", () => {
+      console.log("Connected to the server.");
+      setSocket(socket);
 
-        socket.on("authenticationStatus", (data) => {
-          setAuthenticationDialogOpen(!data.status);
-        });
+      socket.on("authenticationStatus", (data) => {
+        setAuthenticationDialogOpen(!data.status);
 
-        getSessionToken().then((token) => {
-          socket.emit("authenticate", {
-            token: token,
+        if (data.status) {
+          fetchLatestMessages().then((data) => {
+            let insertData: messageSchema[] = [];
+            data.reverse().forEach(async (msg) => {
+              insertData.push({
+                id: msg.id,
+                message: msg.message,
+                sender: msg.author.username || "Unknown",
+                verified: msg.author.verified || false,
+              });
+            });
+
+            if (insertData.length > 0) {
+              setMessages(insertData);
+            }
           });
+        }
+      });
+
+      getSessionToken().then((token) => {
+        socket.emit("authenticate", {
+          token: token,
         });
       });
+    });
 
-      socket.on("disconnect", () => {
-        setAuthenticationDialogOpen(true);
-      });
+    socket.on("disconnect", () => {
+      setAuthenticationDialogOpen(true);
+    });
 
-      socket.on(
-        "broadcastMessage",
-        (data: { userId: number; message: string }) => {
-          addMessage(data.userId, data.message);
-        }
-      );
-    }, 2000);
+    socket.on(
+      "broadcastMessage",
+      (data: { userId: number; message: string }) => {
+        addMessage(data.userId, data.message);
+      }
+    );
   }, []);
 
   return (
@@ -116,8 +132,12 @@ export default function Dashboard() {
         </div>
         <hr className="my-5" />
         <div className="chat">
+          {messages.length === 0 && (
+            <Loader2 size={36} className="animate-spin" />
+          )}
           {messages.map((msg) => (
             <Message
+              id={msg.id}
               key={msg.id}
               message={msg.message}
               sender={msg.sender}

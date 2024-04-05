@@ -8,6 +8,10 @@ const protectedRoutes = ["/dashboard"];
 export async function middleware(request: NextRequest) {
   const session = await getSession();
 
+  if (request.nextUrl.pathname.startsWith("/api")) {
+    return null;
+  }
+
   if (authenticationRoutes.includes(request.nextUrl.pathname) && session) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }

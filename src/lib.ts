@@ -53,3 +53,26 @@ export async function findUserBySession(session: any): Promise<User | null> {
 export async function findUserById(id: number): Promise<User | null> {
   return await prismaClient.user.findUnique({ where: { id } });
 }
+
+export async function createMessage(userId: number, message: string) {
+  return await prismaClient.message.create({
+    data: {
+      message,
+      authorId: userId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  });
+}
+
+export async function fetchLatestMessages() {
+  return await prismaClient.message.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+    include: {
+      author: true,
+    },
+    take: 10,
+  });
+}
