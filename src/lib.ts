@@ -49,3 +49,7 @@ export async function findUserByEmail(email: string): Promise<User | null> {
 export async function findUserBySession(session: any): Promise<User | null> {
   return await prismaClient.user.findUnique({ where: { id: session.user.id } });
 }
+
+export async function findUserById(id: number): Promise<User | null> {
+  return await prismaClient.user.findUnique({ where: { id } });
+}

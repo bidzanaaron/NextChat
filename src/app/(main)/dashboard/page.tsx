@@ -1,9 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import Message from "@/components/ui/dashboard/Message";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { getSessionToken } from "@/lib";
+import { findUserById, getSessionToken } from "@/lib";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { Loader2, Send, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -23,17 +24,14 @@ export default function Dashboard() {
   const [authenticationDialogOpen, setAuthenticationDialogOpen] =
     useState<boolean>(false);
 
-  function addMessage(
-    message: string,
-    sender: string,
-    verified: boolean
-  ) {
+  async function addMessage(userId: number, message: string) {
+    const sender = await findUserById(userId);
     setMessages((currentMessages) => [
       {
         id: currentMessages.length + 1,
         message: message,
-        sender: sender,
-        verified: verified || false,
+        sender: sender?.username || "Unknown",
+        verified: sender?.verified || false,
       },
       ...currentMessages,
     ]);
@@ -43,7 +41,7 @@ export default function Dashboard() {
     setAuthenticationDialogOpen(true);
 
     setTimeout(() => {
-      const socket = io("ws://172.25.2.40:3010");
+      const socket = io("ws://localhost:3010");
 
       socket.on("connect", () => {
         console.log("Connected to the server.");
@@ -60,9 +58,16 @@ export default function Dashboard() {
         });
       });
 
-      socket.on("broadcastMessage", (data) => {
-        addMessage(data.message, data.username, data.verified);
+      socket.on("disconnect", () => {
+        setAuthenticationDialogOpen(true);
       });
+
+      socket.on(
+        "broadcastMessage",
+        (data: { userId: number; message: string }) => {
+          addMessage(data.userId, data.message);
+        }
+      );
     }, 2000);
   }, []);
 
@@ -112,16 +117,12 @@ export default function Dashboard() {
         <hr className="my-5" />
         <div className="chat">
           {messages.map((msg) => (
-            <div
+            <Message
               key={msg.id}
-              className="bg-neutral-900 border mb-3 p-3 rounded"
-            >
-              <h3 className="text-lg font-semibold flex items-center">
-                {msg.sender}
-                {msg.verified && <ShieldCheck className="ms-1" size={20} />}
-              </h3>
-              <span>{msg.message}</span>
-            </div>
+              message={msg.message}
+              sender={msg.sender}
+              verified={msg.verified}
+            />
           ))}
         </div>
       </div>

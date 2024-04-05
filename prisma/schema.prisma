@@ -21,4 +21,12 @@ model User {
   username  String  @unique @db.VarChar(30)
   password  String  @db.VarChar(255)
   verified  Boolean @default(false)
+  messages  Message[]
+}
+
+model Message {
+  id        Int     @id @default(autoincrement())
+  message   String  @db.Text
+  author    User    @relation(fields: [authorId], references: [id])
+  authorId  Int
 }
