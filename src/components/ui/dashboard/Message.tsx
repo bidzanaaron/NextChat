@@ -57,6 +57,7 @@ export default function Message({
   verified,
 }: props) {
   const [open, setOpen] = useState(false);
+  const [url, setUrl] = useState<string>("");
 
   return (
     <div key={id} className="bg-neutral-900 border mb-3 p-3 rounded">
@@ -83,7 +84,11 @@ export default function Message({
             return (
               <Dialog key={index} open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
-                  <span key={index} className="text-blue-500 cursor-pointer transition-colors hover:text-blue-600">
+                  <span
+                    onClick={() => setUrl(word)}
+                    key={index}
+                    className="text-blue-500 cursor-pointer transition-colors hover:text-blue-600"
+                  >
                     {word}{" "}
                   </span>
                 </DialogTrigger>
@@ -95,7 +100,7 @@ export default function Message({
                       please be sure that this link is safe before proceeding.
                     </DialogDescription>
                   </DialogHeader>
-                  {word}
+                  {url}
                   <DialogFooter>
                     <Button
                       variant={"secondary"}
@@ -106,7 +111,7 @@ export default function Message({
                     <Button
                       onClick={async () => {
                         setOpen(false);
-                        window.open(word, "_blank");
+                        window.open(url, "_blank");
                       }}
                     >
                       Continue
