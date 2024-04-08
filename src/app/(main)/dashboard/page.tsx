@@ -1,12 +1,13 @@
 "use client";
 
+import "dotenv/config";
 import { Button } from "@/components/ui/button";
 import Message from "@/components/ui/dashboard/Message";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { fetchLatestMessages, findUserById, getSessionToken } from "@/lib";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import { Loader2, Send, ShieldCheck } from "lucide-react";
+import { Loader2, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
@@ -40,7 +41,7 @@ export default function Dashboard() {
   useEffect(() => {
     setAuthenticationDialogOpen(true);
 
-    const socket = io("ws://172.25.2.40:3010");
+    const socket = io(process.env.NEXT_PUBLIC_WEBSOCKET_URL as string);
 
     socket.on("connect", () => {
       console.log("Connected to the server.");
@@ -52,7 +53,7 @@ export default function Dashboard() {
         if (data.status) {
           fetchLatestMessages().then((data) => {
             let insertData: messageSchema[] = [];
-            data.reverse().forEach(async (msg) => {
+            data.forEach(async (msg) => {
               insertData.push({
                 id: msg.id,
                 message: msg.message,
@@ -85,6 +86,10 @@ export default function Dashboard() {
         addMessage(data.userId, data.message);
       }
     );
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   return (
