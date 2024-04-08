@@ -2,9 +2,11 @@
 
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { unlink, writeFile } from "fs/promises";
 import { cookies } from "next/headers";
+import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { encrypt } from "./lib";
+import { encrypt, findUserBySession, getSession } from "./lib";
 
 const prismaClient = new PrismaClient();
 
@@ -56,7 +58,12 @@ export async function login(formData: FormData) {
     return { error: "Deine E-Mail oder dein Passwort ist nicht korrekt." };
   }
 
-  const user = { id: dbUser.id, email: dbUser.email, username: dbUser.username, verified: dbUser.verified };
+  const user = {
+    id: dbUser.id,
+    email: dbUser.email,
+    username: dbUser.username,
+    verified: dbUser.verified,
+  };
 
   const expires = new Date(Date.now() + 1000 * 60 * 60 * 24);
   const session = await encrypt(expires, { user });
@@ -121,6 +128,48 @@ export async function registerUser(formData: FormData) {
     data: {
       ...resultData,
       password: hashedPassword,
+    },
+  });
+
+  return { success: true, error: null };
+}
+
+export async function uploadPicture(formData: FormData) {
+  const file: File | null = formData.get("file") as unknown as File;
+
+  if (!file) {
+    return { success: false, error: "Please select a file." };
+  }
+
+  if (!file.type.startsWith("image/")) {
+    return { success: false, error: "Please select an image." };
+  }
+
+  const session = await getSession();
+  const currentUser = await findUserBySession(session);
+  if (!currentUser) {
+    return { success: false, error: "You are not logged in." };
+  }
+
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
+
+  const filePath = `uploads/profilepictures/${uuidv4() + "_" + file.name}`;
+  const path = `public/${filePath}`;
+
+  await writeFile(path, buffer);
+
+  if (currentUser.profilePicture !== "") {
+    const oldFilePath = `public/${currentUser.profilePicture}`;
+    await unlink(oldFilePath);
+  }
+
+  await prismaClient.user.update({
+    where: {
+      id: currentUser.id,
+    },
+    data: {
+      profilePicture: filePath,
     },
   });
 

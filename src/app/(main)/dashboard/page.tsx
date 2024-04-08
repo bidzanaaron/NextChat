@@ -15,6 +15,7 @@ interface messageSchema {
   id: number;
   message: string;
   sender: string;
+  profilePicture: string;
   verified: boolean;
 }
 
@@ -32,6 +33,7 @@ export default function Dashboard() {
         id: currentMessages.length + 1,
         message: message,
         sender: sender?.username || "Unknown",
+        profilePicture: sender?.profilePicture || "",
         verified: sender?.verified || false,
       },
       ...currentMessages,
@@ -58,6 +60,7 @@ export default function Dashboard() {
                 id: msg.id,
                 message: msg.message,
                 sender: msg.author.username || "Unknown",
+                profilePicture: msg.author.profilePicture || "",
                 verified: msg.author.verified || false,
               });
             });
@@ -146,6 +149,7 @@ export default function Dashboard() {
               key={msg.id}
               message={msg.message}
               sender={msg.sender}
+              profilePicture={msg.profilePicture}
               verified={msg.verified}
             />
           ))}
